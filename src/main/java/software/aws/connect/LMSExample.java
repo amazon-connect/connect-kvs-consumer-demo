@@ -1,29 +1,16 @@
 package software.aws.connect;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.kinesisvideo.parser.ebml.MkvTypeInfos;
-import com.amazonaws.kinesisvideo.parser.mkv.MkvDataElement;
-import com.amazonaws.kinesisvideo.parser.mkv.MkvElementVisitException;
-import com.amazonaws.kinesisvideo.parser.mkv.MkvElementVisitor;
-import com.amazonaws.kinesisvideo.parser.mkv.MkvEndMasterElement;
-import com.amazonaws.kinesisvideo.parser.mkv.MkvStartMasterElement;
 import com.amazonaws.kinesisvideo.parser.utilities.FragmentMetadataVisitor;
-import com.amazonaws.kinesisvideo.parser.utilities.FrameVisitor;
 import com.amazonaws.kinesisvideo.parser.examples.KinesisVideoCommon;
 import com.amazonaws.kinesisvideo.parser.examples.StreamOps;
 import com.amazonaws.kinesisvideo.parser.examples.GetMediaWorker;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.kinesisvideo.model.StartSelector;
 import com.amazonaws.services.kinesisvideo.model.StartSelectorType;
-import software.aws.connect.LMSFrameProcessor;
 
-import java.io.Closeable;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -53,8 +40,12 @@ public class LMSExample extends KinesisVideoCommon {
         this.fragmentNumber = fragmentNumber;
     }
 
-    public void execute () throws InterruptedException, IOException {
+    public void execute() throws InterruptedException, IOException {
         try {
+            FragmentMetadataVisitor fragmentMetadataVisitor = FragmentMetadataVisitor.create();
+            LMSTagVisitor lmsTagVisitor = LMSTagVisitor.create();
+            LMSDataVisitor lmsDataVisitor = LMSDataVisitor.create(fragmentMetadataVisitor, lmsTagVisitor, outputStreamFromCustomer, outputStreamToCustomer);
+            
             //Start a GetMedia worker to read and process data from the Kinesis Video Stream.
             GetMediaWorker getMediaWorker = GetMediaWorker.create(
                 getRegion(),
@@ -64,7 +55,7 @@ public class LMSExample extends KinesisVideoCommon {
                     .withStartSelectorType(StartSelectorType.FRAGMENT_NUMBER)
                     .withAfterFragmentNumber(fragmentNumber),
                 streamOps.getAmazonKinesisVideo(),
-                FrameVisitor.create(LMSFrameProcessor.create(outputStreamFromCustomer, outputStreamToCustomer))
+                LMSCompositeMkvElementVisitor.create(fragmentMetadataVisitor, lmsTagVisitor, lmsDataVisitor)
             );
             
             executorService.submit(getMediaWorker);
