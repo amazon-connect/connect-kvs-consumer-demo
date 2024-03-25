@@ -21,7 +21,7 @@ mvn -version
 aws --version
 ```
 
-Next, downloaded the code from GitHub. You can build it using Maven via this command: `mvn clean install`.
+Next, download the code from GitHub. You can build it using Maven via this command: `mvn clean install`.
 
 ## Execution
 Following [this guide](https://docs.aws.amazon.com/connect/latest/adminguide/customer-voice-streams.html), enable `Live media streaming` on your Amazon Connect instance.
@@ -50,10 +50,11 @@ This should produce 2 files, `AudioFromCustomer.raw` and `AudioToCustomer.raw`. 
 This demo consists of 3 files:
 * `LMSDemo.java` - is a class with a main method that invokes LMSExample.
 * `LMSExample.java` - is similar to the examples provided in the Kinesis Video Streams Parser library. It gets media from the specified Kinesis Video Streams with the specified fragment number. This code sample includes frame processing to separate the tracks.
-* `LMSFrameProcessor.java` - is invoked by LMSExample to save data from Kinesis Video Streams to the specified output stream. Use a file output stream to save the output to a file. This code sample also includes frame processing to separate the tracks.
-
+* `LMSCompositeMkvElementVisitor.java` - extends [CompositeMkvElementVisitor.java](https://github.com/aws/amazon-kinesis-video-streams-parser-library/blob/master/src/main/java/com/amazonaws/kinesisvideo/parser/mkv/visitors/CompositeMkvElementVisitor.java) with a static `create()` method.
+* `LMSTagVisitor.java` - extends [MkvElementVisitor.java](https://github.com/aws/amazon-kinesis-video-streams-parser-library/blob/master/src/main/java/com/amazonaws/kinesisvideo/parser/mkv/MkvElementVisitor.java) to print all tag element metadata (key-value pairs).
+* `LMSDataVisitor.java` - extends [MkvElementVisitor.java](https://github.com/aws/amazon-kinesis-video-streams-parser-library/blob/master/src/main/java/com/amazonaws/kinesisvideo/parser/mkv/MkvElementVisitor.java) to save the `AUDIO_FROM_CUSTOMER` and `AUDIO_TO_CUSTOMER` tracks to disk.
 
 ## Release Notes
 
-### Release 1.0.0 (August 2023)
+### Release 1.0.0 (March 2024)
 * First release of the Amazon Connect Kinesis Video Streams consumer demo.
