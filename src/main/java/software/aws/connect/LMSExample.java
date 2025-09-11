@@ -25,10 +25,13 @@ public class LMSExample extends KinesisVideoCommon {
     private final OutputStream outputStreamFromCustomer;
     private final OutputStream outputStreamToCustomer;
     private final String fragmentNumber;
+    private final String contactId;
 
+    // constructor with contactId; compare tag with contactId passed in
     public LMSExample(Regions region,
                       String streamName,
                       String fragmentNumber,
+                      String contactId,
                       AWSCredentialsProvider credentialsProvider,
                       OutputStream outputStreamFromCustomer,
                       OutputStream outputStreamToCustomer) throws IOException {
@@ -38,12 +41,23 @@ public class LMSExample extends KinesisVideoCommon {
         this.outputStreamFromCustomer = outputStreamFromCustomer;
         this.outputStreamToCustomer = outputStreamToCustomer;
         this.fragmentNumber = fragmentNumber;
+        this.contactId = contactId;
+    }
+
+    // Constructor without contactId; compare tag with first contactId read from the tag
+    public LMSExample(Regions region,
+                      String streamName,
+                      String fragmentNumber,
+                      AWSCredentialsProvider credentialsProvider,
+                      OutputStream outputStreamFromCustomer,
+                      OutputStream outputStreamToCustomer) throws IOException {
+        this(region, streamName, fragmentNumber, null, credentialsProvider, outputStreamFromCustomer, outputStreamToCustomer);
     }
 
     public void execute() throws InterruptedException, IOException {
         try {
             FragmentMetadataVisitor fragmentMetadataVisitor = FragmentMetadataVisitor.create();
-            LMSTagVisitor lmsTagVisitor = LMSTagVisitor.create();
+            LMSTagVisitor lmsTagVisitor = (contactId != null) ? LMSTagVisitor.create(contactId) : LMSTagVisitor.create();
             LMSDataVisitor lmsDataVisitor = LMSDataVisitor.create(fragmentMetadataVisitor, lmsTagVisitor, outputStreamFromCustomer, outputStreamToCustomer);
             
             //Start a GetMedia worker to read and process data from the Kinesis Video Stream.
