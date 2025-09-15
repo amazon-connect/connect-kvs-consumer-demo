@@ -67,4 +67,16 @@ public class LMSTagVisitorTest
         lmsTagVisitor.visit(mkvDataElement);
         assertEquals(false, lmsTagVisitor.isDone());
     }
+
+    @Test
+    public void testIsDoneTrueWithTargetContactId() throws MkvElementVisitException
+    {
+        lmsTagVisitor = LMSTagVisitor.create("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
+
+        when(ebmlElementMetaData.getTypeInfo()).thenReturn(TAGNAME).thenReturn(TAGSTRING);
+        when(mkvValue.getVal()).thenReturn("ContactId").thenReturn("yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy");
+        lmsTagVisitor.visit(mkvDataElement);
+        lmsTagVisitor.visit(mkvDataElement);
+        assertEquals(true, lmsTagVisitor.isDone());
+    }
 }

@@ -13,13 +13,20 @@ import com.amazonaws.kinesisvideo.parser.mkv.MkvStartMasterElement;
 public class LMSTagVisitor extends MkvElementVisitor {
     private String tagName;
     private String tagValue;
+    private final String targetContactId;
     private String prevContactId;
     private boolean isDone = false;
 
-    private LMSTagVisitor () {};
+    private LMSTagVisitor (String targetContactId) {
+        this.targetContactId = targetContactId;
+    };
+
+    public static LMSTagVisitor create(String targetContactId) {
+        return new LMSTagVisitor(targetContactId);
+    }
 
     public static LMSTagVisitor create() {
-        return new LMSTagVisitor();
+        return new LMSTagVisitor(null);
     }
 
     @Override
@@ -49,11 +56,18 @@ public class LMSTagVisitor extends MkvElementVisitor {
             System.out.println(String.format("%s=%s", tagName, tagValue));
 
             // Stop processing if we encounter a different contactId
-            if (tagName == "ContactId") {
-                if (prevContactId == null) {
-                    prevContactId = tagValue;
-                } else if (!tagValue.equals(prevContactId)) {
+            if (tagName.equals("ContactId")) {
+                if (targetContactId != null && !tagValue.equals(targetContactId)) {
+                    // compare against target contactId
+                    System.out.println("Found different ContactId: " + tagValue + ", expected: " + targetContactId + ". Stopping processing.");
                     isDone = true;
+                } else {
+                    // if contactId not provided, then compare against previous contactId read from the tag
+                    if (prevContactId == null) {
+                        prevContactId = tagValue;
+                    } else if (!tagValue.equals(prevContactId)) {
+                        isDone = true;
+                    }
                 }
             }
 
